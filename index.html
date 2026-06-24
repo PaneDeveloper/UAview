@@ -3,191 +3,590 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Identificador de User Agent</title>
+<title>UA Viewer Pro</title>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --border-color: #dddddd;
+    --accent: #4CAF50;
+    --accent-hover: #45a049;
+    --error: #f44336;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #2d2d2d;
+      --text-primary: #ffffff;
+      --text-secondary: #bbbbbb;
+      --border-color: #444444;
+      --accent: #66bb6a;
+      --accent-hover: #4caf50;
+    }
+  }
+
   body {
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     padding: 20px;
-    background: #f0f0f0;
-    text-align: center;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    margin: 0;
+    transition: background 0.3s, color 0.3s;
   }
-  button {
-    background-color: #4CAF50;
-    color: white;
-    font-size: 18px;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 24px;
+  }
+
+  .theme-toggle {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 18px;
+    transition: 0.2s;
   }
-  button:hover {
-    background-color: #45a049;
+
+  .theme-toggle:hover {
+    background: var(--accent);
+    border-color: var(--accent);
   }
-  #ua-display {
-    margin-top: 20px;
-    background: white;
-    padding: 15px;
-    border-radius: 10px;
-    text-align: left;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+
+  .tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+    overflow-x: auto;
   }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: 0.2s;
+  }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-btn:hover {
+    color: var(--text-primary);
+  }
+
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.3s;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+
+  .btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s;
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+
+  .btn:hover {
+    background: var(--accent-hover);
+  }
+
+  .btn.secondary {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+  }
+
+  .btn.secondary:hover {
+    background: var(--border-color);
+  }
+
+  .btn.danger {
+    background: var(--error);
+  }
+
+  .btn.danger:hover {
+    background: #d32f2f;
+  }
+
   .part {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
   }
+
+  .part:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
   .part strong {
-    color: #333;
+    display: block;
+    margin-bottom: 5px;
+    color: var(--accent);
   }
-  /* Textos invisíveis para leitores de tela */
-  .sr-only {
-    position: absolute !important;
-    width: 1px; 
-    height: 1px; 
-    padding: 0; 
-    margin: -1px; 
-    overflow: hidden; 
-    clip: rect(0,0,0,0); 
-    border: 0;
+
+  code {
+    background: var(--bg-primary);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    display: block;
+    overflow-x: auto;
+    margin-top: 5px;
+  }
+
+  .history-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .history-item-info {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .history-item-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .history-item-ua {
+    font-size: 13px;
+    font-family: monospace;
+    color: var(--text-secondary);
+    margin-top: 5px;
+    word-break: break-all;
+  }
+
+  .compare-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .compare-box {
+    flex: 1;
+  }
+
+  .compare-label {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--accent);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  textarea {
+    width: 100%;
+    height: 80px;
+    padding: 10px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 12px;
+    resize: vertical;
+  }
+
+  .diff {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+
+  .diff-item {
+    flex: 1;
+  }
+
+  .diff-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .same { color: var(--text-secondary); }
+  .different { color: var(--error); font-weight: bold; }
+
+  .button-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px 20px;
+  }
+
+  .material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+  }
+
+  .device-card {
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  .device-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+  }
+
+  .device-name {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .device-info {
+    font-size: 14px;
+    opacity: 0.9;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--accent);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    z-index: 1000;
+    animation: slideIn 0.3s;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @media (max-width: 768px) {
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+    }
+
+    .compare-container {
+      grid-template-columns: 1fr;
+    }
+
+    .history-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    h1 {
+      font-size: 20px;
+    }
   }
 </style>
 </head>
 <body>
 
-<!-- Descrição acessível em português -->
-<div id="desc-pt" class="sr-only" role="region" aria-label="Descrição da página">
-Esta página contém um botão chamado "Identifique meu User Agent :D". Ao clicar nele, o usuário verá o texto do seu user agent completo, além de uma explicação simples sobre o navegador, sistema operacional, engine de renderização e arquitetura do dispositivo.
+<div class="container">
+  <div class="header">
+    <h1>🔍 <i class="material-icons" style="font-size: 32px; vertical-align: middle;">search</i> UA Viewer Pro</h1>
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('viewer')"><i class="material-icons" style="font-size: 20px; vertical-align: middle;">assessment</i> Visualizar</button>
+    <button class="tab-btn" onclick="switchTab('history')"><i class="material-icons" style="font-size: 20px; vertical-align: middle;">history</i> Histórico</button>
+    <button class="tab-btn" onclick="switchTab('compare')"><i class="material-icons" style="font-size: 20px; vertical-align: middle;">compare</i> Comparar</button>
+  </div>
+
+  <!-- TAB: VISUALIZAR -->
+  <div id="viewer" class="tab-content active">
+    <div class="card">
+      <div class="button-group">
+        <button class="btn" onclick="analyzeCurrentUA()"><i class="material-icons" style="font-size: 18px; vertical-align: middle;">smartphone</i> Analisar Meu UA</button>
+        <button class="btn secondary" onclick="copyUA()"><i class="material-icons" style="font-size: 18px; vertical-align: middle;">content_copy</i> Copiar UA</button>
+        <button class="btn secondary" onclick="downloadJSON()"><i class="material-icons" style="font-size: 18px; vertical-align: middle;">download</i> Download JSON</button>
+      </div>
+    </div>
+
+    <div id="ua-display"></div>
+  </div>
+
+  <!-- TAB: HISTÓRICO -->
+  <div id="history" class="tab-content">
+    <div class="card">
+      <button class="btn danger" onclick="clearHistory()"><i class="material-icons" style="font-size: 18px; vertical-align: middle;">delete_sweep</i> Limpar Histórico</button>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+  <!-- TAB: COMPARADOR -->
+  <div id="compare" class="tab-content">
+    <div class="card">
+      <div class="compare-container">
+        <div class="compare-box">
+          <div class="compare-label"><i class="material-icons" style="font-size: 16px; vertical-align: middle;">phone_iphone</i> UA Atual</div>
+          <textarea id="ua1-input" readonly></textarea>
+        </div>
+        <div class="compare-box">
+          <div class="compare-label"><i class="material-icons" style="font-size: 16px; vertical-align: middle;">edit</i> Cole outro UA aqui</div>
+          <textarea id="ua2-input" placeholder="Cole um User Agent para comparar..."></textarea>
+        </div>
+      </div>
+      <button class="btn" onclick="compareUAs()" style="margin-top: 15px;"><i class="material-icons" style="font-size: 18px; vertical-align: middle;">compare_arrows</i> Comparar</button>
+    </div>
+
+    <div id="compare-result"></div>
+  </div>
 </div>
-
-<!-- Descrição acessível em inglês -->
-<div id="desc-en" class="sr-only" role="region" aria-label="Page description">
-This page contains a button called "Identify my User Agent :D". When clicked, the user will see the full user agent string along with a simple explanation about the browser, operating system, rendering engine, and device architecture.
-</div>
-
-<h1 id="title">Identifique meu User Agent :D</h1>
-<button id="btn-identify">Clique aqui!</button>
-
-<div id="ua-display"></div>
 
 <script>
-  // Textos para as línguas
   const texts = {
     pt: {
-      title: "Identifique meu User Agent :D",
-      button: "Clique aqui!",
-      uaComplete: "User Agent completo:",
-      browser: "Navegador:",
-      os: "Sistema Operacional:",
-      engine: "Engine de Renderização:",
-      arch: "Arquitetura:",
-      browserDetails: {
-        "Mozilla Firefox": "Um navegador popular focado em privacidade e código aberto, usando engine Gecko.",
-        "Google Chrome": "O navegador mais usado, rápido, baseado no projeto Chromium e engine Blink.",
-        "Microsoft Edge": "Navegador da Microsoft, baseado em Chromium e Blink, com integração ao Windows.",
-        "Safari": "Navegador da Apple, usado em macOS e iOS, baseado em WebKit.",
-        "Opera": "Navegador alternativo baseado em Chromium, com vários recursos extras.",
-        "Desconhecido": "Navegador não identificado ou raro."
-      },
-      osDetails: {
-        "Windows 10": "Sistema operacional da Microsoft, muito usado em PCs.",
-        "Windows 8.1": "Versão anterior do Windows, menos comum atualmente.",
-        "Windows 7": "Windows clássico, ainda usado por algumas pessoas.",
-        "macOS": "Sistema operacional da Apple para computadores Mac.",
-        "Android": "Sistema operacional móvel do Google, usado em muitos smartphones.",
-        "iOS (iPhone)": "Sistema operacional da Apple para iPhones.",
-        "iOS (iPad)": "Sistema operacional da Apple para iPads.",
-        "Linux": "Sistema operacional livre e aberto, usado em servidores e alguns desktops.",
-        "Desconhecido": "Sistema operacional não identificado."
-      },
-      engineDetails: {
-        "Gecko (Mozilla Firefox)": "Engine usada pelo Firefox, focada em padrões web e privacidade.",
-        "AppleWebKit (Safari, Chrome)": "Engine base para Safari e versões antigas do Chrome, baseada em WebKit.",
-        "Trident (Internet Explorer)": "Engine antiga da Microsoft usada no Internet Explorer.",
-        "Blink (Chrome, Edge moderno)": "Engine moderna baseada em WebKit usada no Chrome e Edge atual.",
-        "Desconhecida": "Engine não identificada."
-      },
-      archDetails: {
-        "64-bit": "Arquitetura de 64 bits, mais moderna e capaz de usar mais memória.",
-        "32-bit": "Arquitetura antiga de 32 bits, com limitações em memória.",
-        "Desconhecida": "Arquitetura não identificada."
-      }
+      browser: "Navegador",
+      os: "Sistema Operacional",
+      engine: "Engine",
+      arch: "Arquitetura",
+      device: "Dispositivo",
+      version: "Versão",
+      uaComplete: "User Agent Completo",
+      uaCopied: "UA copiado!",
+      jsonDownloaded: "JSON baixado!",
+      noHistory: "Sem histórico ainda",
+      copied: "Copiado!"
     },
     en: {
-      title: "Identify my User Agent :D",
-      button: "Click here!",
-      uaComplete: "Complete User Agent:",
-      browser: "Browser:",
-      os: "Operating System:",
-      engine: "Rendering Engine:",
-      arch: "Architecture:",
-      browserDetails: {
-        "Mozilla Firefox": "A popular browser focused on privacy and open source, using the Gecko engine.",
-        "Google Chrome": "The most used browser, fast, based on the Chromium project and Blink engine.",
-        "Microsoft Edge": "Microsoft's browser, based on Chromium and Blink, integrated with Windows.",
-        "Safari": "Apple's browser for macOS and iOS, based on WebKit.",
-        "Opera": "An alternative browser based on Chromium, with several extra features.",
-        "Desconhecido": "Unknown or rare browser."
-      },
-      osDetails: {
-        "Windows 10": "Microsoft's operating system, widely used on PCs.",
-        "Windows 8.1": "Older version of Windows, less common nowadays.",
-        "Windows 7": "Classic Windows, still used by some people.",
-        "macOS": "Apple's operating system for Mac computers.",
-        "Android": "Google's mobile operating system, used on many smartphones.",
-        "iOS (iPhone)": "Apple's operating system for iPhones.",
-        "iOS (iPad)": "Apple's operating system for iPads.",
-        "Linux": "Free and open-source operating system, used on servers and some desktops.",
-        "Desconhecido": "Unknown operating system."
-      },
-      engineDetails: {
-        "Gecko (Mozilla Firefox)": "Engine used by Firefox, focused on web standards and privacy.",
-        "AppleWebKit (Safari, Chrome)": "Base engine for Safari and older Chrome versions, based on WebKit.",
-        "Trident (Internet Explorer)": "Old Microsoft engine used in Internet Explorer.",
-        "Blink (Chrome, Edge moderno)": "Modern engine based on WebKit used in Chrome and current Edge.",
-        "Desconhecida": "Unknown engine."
-      },
-      archDetails: {
-        "64-bit": "64-bit architecture, more modern and capable of using more memory.",
-        "32-bit": "Old 32-bit architecture, with memory limitations.",
-        "Desconhecida": "Unknown architecture."
-      }
+      browser: "Browser",
+      os: "Operating System",
+      engine: "Rendering Engine",
+      arch: "Architecture",
+      device: "Device",
+      version: "Version",
+      uaComplete: "Complete User Agent",
+      uaCopied: "UA copied!",
+      jsonDownloaded: "JSON downloaded!",
+      noHistory: "No history yet",
+      copied: "Copied!"
     }
   };
 
-  // Detecta idioma do navegador e retorna 'pt' ou 'en'
+  const browserDetails = {
+    pt: {
+      "Mozilla Firefox": "Navegador focado em privacidade, engine Gecko.",
+      "Google Chrome": "Navegador mais usado, baseado em Chromium, engine Blink.",
+      "Microsoft Edge": "Navegador Microsoft, baseado em Chromium, engine Blink.",
+      "Safari": "Navegador Apple, engine WebKit.",
+      "Opera": "Navegador baseado em Chromium, engine Blink.",
+      "Desconhecido": "Navegador não identificado."
+    },
+    en: {
+      "Mozilla Firefox": "Privacy-focused browser, Gecko engine.",
+      "Google Chrome": "Most used browser, based on Chromium, Blink engine.",
+      "Microsoft Edge": "Microsoft browser, based on Chromium, Blink engine.",
+      "Safari": "Apple browser, WebKit engine.",
+      "Opera": "Chromium-based browser, Blink engine.",
+      "Desconhecido": "Unknown browser."
+    }
+  };
+
   function detectLang() {
     const lang = navigator.language || navigator.userLanguage || 'pt';
-    if (lang.toLowerCase().startsWith('en')) return 'en';
-    return 'pt';
+    return lang.toLowerCase().startsWith('en') ? 'en' : 'pt';
   }
 
-  function updateLanguageTexts(lang) {
-    document.getElementById('title').textContent = texts[lang].title;
-    document.getElementById('btn-identify').textContent = texts[lang].button;
+  const currentLang = detectLang();
+  const t = texts[currentLang];
 
-    // Mostra só a descrição certa e oculta a outra
-    document.getElementById('desc-pt').style.display = (lang === 'pt') ? 'block' : 'none';
-    document.getElementById('desc-en').style.display = (lang === 'en') ? 'block' : 'none';
+  function getDeviceIcon(device) {
+    const icons = {
+      "PC": { icon: "desktop_mac", name: "PC" },
+      "Celular": { icon: "smartphone", name: "Celular" },
+      "SmartWatch": { icon: "watch", name: "SmartWatch" },
+      "TV": { icon: "tv", name: "TV" },
+      "Tablet": { icon: "tablet", name: "Tablet" }
+    };
+    return icons[device] || { icon: "devices", name: device };
   }
 
-  function parseUserAgent(ua, lang) {
-    const t = texts[lang];
-    const explanations = [];
+  function getBrowserIcon(browser) {
+    const icons = {
+      "Mozilla Firefox": "firefox",
+      "Google Chrome": "language",
+      "Microsoft Edge": "code",
+      "Safari": "apple",
+      "Opera": "music_note",
+      "Desconhecido": "help"
+    };
+    return icons[browser] || "language";
+  }
 
-    explanations.push(`<div class="part"><strong>${t.uaComplete}</strong><br><code>${ua}</code></div>`);
+  function getOSIcon(os) {
+    const icons = {
+      "Windows 10": "window",
+      "Windows 11": "window",
+      "Windows 8.1": "window",
+      "Windows 7": "window",
+      "macOS": "apple",
+      "Linux": "tux",
+      "Android": "android",
+      "iOS (iPhone)": "apple",
+      "iOS (iPad)": "tablet_mac",
+      "Desconhecido": "help"
+    };
+    return icons[os] || "devices_other";
+  }
 
+  function getEngineIcon(engine) {
+    const icons = {
+      "Gecko": "rocket",
+      "Blink": "bolt",
+      "WebKit": "web",
+      "Trident": "code",
+      "Desconhecida": "help"
+    };
+    return icons[engine] || "settings";
+  }
+
+  function getArchIcon(arch) {
+    const icons = {
+      "64-bit": "storage",
+      "32-bit": "memory",
+      "Desconhecida": "help"
+    };
+    return icons[arch] || "devices";
+  }
+
+  function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+  }
+
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+
+    if (tabName === 'history') loadHistory();
+    if (tabName === 'compare') prepareCompare();
+  }
+
+  function detectUserAgent(ua) {
+    // Navegador
     let browser = "Desconhecido";
     if (ua.includes("Firefox")) browser = "Mozilla Firefox";
-    else if (ua.includes("Chrome") && !ua.includes("Edg")) browser = "Google Chrome";
+    else if (ua.includes("OPR") || ua.includes("Opera")) browser = "Opera";
     else if (ua.includes("Edg")) browser = "Microsoft Edge";
-    else if (ua.includes("Safari") && !ua.includes("Chrome")) browser = "Safari";
-    else if (ua.includes("Opera") || ua.includes("OPR")) browser = "Opera";
+    else if (ua.includes("Chrome")) browser = "Google Chrome";
+    else if (ua.includes("Safari")) browser = "Safari";
 
-    explanations.push(`<div class="part"><strong>${t.browser}</strong> ${browser}<br><em>${t.browserDetails[browser]}</em></div>`);
+    // Versão
+    let version = "N/A";
+    if (browser === "Mozilla Firefox") {
+      const m = ua.match(/Firefox\/([0-9.]+)/);
+      version = m ? m[1] : "N/A";
+    } else if (browser === "Google Chrome") {
+      const m = ua.match(/Chrome\/([0-9.]+)/);
+      version = m ? m[1] : "N/A";
+    } else if (browser === "Microsoft Edge") {
+      const m = ua.match(/Edg[e\/]+([0-9.]+)/);
+      version = m ? m[1] : "N/A";
+    } else if (browser === "Safari") {
+      const m = ua.match(/Version\/([0-9.]+)/);
+      version = m ? m[1] : "N/A";
+    } else if (browser === "Opera") {
+      const m = ua.match(/OPR\/([0-9.]+)/);
+      version = m ? m[1] : "N/A";
+    }
 
+    // SO
     let os = "Desconhecido";
     if (ua.includes("Windows NT 10.0")) os = "Windows 10";
+    else if (ua.includes("Windows NT 11")) os = "Windows 11";
     else if (ua.includes("Windows NT 6.3")) os = "Windows 8.1";
     else if (ua.includes("Windows NT 6.1")) os = "Windows 7";
     else if (ua.includes("Macintosh")) os = "macOS";
@@ -196,35 +595,256 @@ This page contains a button called "Identify my User Agent :D". When clicked, th
     else if (ua.includes("iPad")) os = "iOS (iPad)";
     else if (ua.includes("Linux")) os = "Linux";
 
-    explanations.push(`<div class="part"><strong>${t.os}</strong> ${os}<br><em>${t.osDetails[os]}</em></div>`);
-
+    // Engine
     let engine = "Desconhecida";
-    if (ua.includes("Gecko/")) engine = "Gecko (Mozilla Firefox)";
-    if (ua.includes("AppleWebKit")) engine = "AppleWebKit (Safari, Chrome)";
-    if (ua.includes("Trident")) engine = "Trident (Internet Explorer)";
-    if (ua.includes("Blink")) engine = "Blink (Chrome, Edge moderno)";
+    if (ua.includes("Gecko/") && ua.includes("Firefox")) engine = "Gecko";
+    else if (ua.includes("Chrome") || ua.includes("OPR") || ua.includes("Edg")) engine = "Blink";
+    else if (ua.includes("Safari") && !ua.includes("Chrome")) engine = "WebKit";
+    else if (ua.includes("Trident")) engine = "Trident";
 
-    explanations.push(`<div class="part"><strong>${t.engine}</strong> ${engine}<br><em>${t.engineDetails[engine]}</em></div>`);
-
+    // Arquitetura
     let arch = "Desconhecida";
-    if (ua.includes("WOW64") || ua.includes("Win64") || ua.includes("x64") || ua.includes("amd64")) arch = "64-bit";
-    else if (ua.includes("x86")) arch = "32-bit";
+    if (ua.includes("x86_64") || ua.includes("Win64") || ua.includes("WOW64") || ua.includes("amd64")) arch = "64-bit";
+    else if (ua.includes("x86") || ua.includes("i686")) arch = "32-bit";
 
-    explanations.push(`<div class="part"><strong>${t.arch}</strong> ${arch}<br><em>${t.archDetails[arch]}</em></div>`);
+    // Tipo de dispositivo
+    let device = "PC";
+    if (ua.includes("Android Wear") || ua.includes("Wear OS")) {
+      device = "SmartWatch";
+    } else if (ua.includes("Android TV") || ua.includes("GoogleTV") || ua.includes("Tizen")) {
+      device = "TV";
+    } else if (ua.includes("iPad") || (ua.includes("Android") && ua.includes("Tablet"))) {
+      device = "Tablet";
+    } else if (ua.includes("Mobile") || ua.includes("Android") || ua.includes("iPhone") || ua.includes("Windows Phone")) {
+      device = "Celular";
+    }
 
-    return explanations.join("");
+    return { browser, version, os, engine, arch, device, ua };
   }
 
-  // Ao carregar a página
-  const lang = detectLang();
-  updateLanguageTexts(lang);
+  function renderUA(data) {
+    const deviceInfo = getDeviceIcon(data.device);
+    const browserIcon = getBrowserIcon(data.browser);
+    const osIcon = getOSIcon(data.os);
+    const engineIcon = getEngineIcon(data.engine);
+    const archIcon = getArchIcon(data.arch);
 
-  const btn = document.getElementById('btn-identify');
-  const display = document.getElementById('ua-display');
+    const html = `
+      <div class="device-card">
+        <div class="device-icon">
+          <i class="material-icons">${deviceInfo.icon}</i>
+        </div>
+        <div class="device-name">${deviceInfo.name}</div>
+        <div class="device-info">${data.os} • ${data.arch}</div>
+      </div>
 
-  btn.addEventListener('click', () => {
+      <div class="card">
+        <div class="part">
+          <strong><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">terminal</i>${t.uaComplete}</strong>
+          <code>${data.ua}</code>
+        </div>
+        <div class="part">
+          <strong><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">${browserIcon}</i>${t.browser}</strong>
+          ${data.browser}<br>
+          <em style="font-size: 13px; color: var(--text-secondary);">${browserDetails[currentLang][data.browser]}</em>
+        </div>
+        <div class="part">
+          <strong><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">info</i>${t.version}</strong>
+          ${data.version}
+        </div>
+        <div class="part">
+          <strong><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">${osIcon}</i>${t.os}</strong>
+          ${data.os}
+        </div>
+        <div class="part">
+          <strong><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">${deviceInfo.icon}</i>${t.device}</strong>
+          ${data.device}
+        </div>
+        <div class="part">
+          <strong><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">${engineIcon}</i>${t.engine}</strong>
+          ${data.engine}
+        </div>
+        <div class="part" style="border-bottom: none;">
+          <strong><i class="material-icons" style="font-size: 18px; vertical-align: middle; margin-right: 8px;">${archIcon}</i>${t.arch}</strong>
+          ${data.arch}
+        </div>
+      </div>
+    `;
+    document.getElementById('ua-display').innerHTML = html;
+  }
+
+  function analyzeCurrentUA() {
+    const data = detectUserAgent(navigator.userAgent);
+    renderUA(data);
+    saveToHistory(data);
+    document.getElementById('ua1-input').value = navigator.userAgent;
+  }
+
+  function copyUA() {
     const ua = navigator.userAgent;
-    display.innerHTML = parseUserAgent(ua, lang);
+    navigator.clipboard.writeText(ua).then(() => {
+      showToast(t.uaCopied);
+    });
+  }
+
+  function downloadJSON() {
+    const data = detectUserAgent(navigator.userAgent);
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ua-info.json';
+    a.click();
+    showToast(t.jsonDownloaded);
+  }
+
+  function saveToHistory(data) {
+    let history = JSON.parse(localStorage.getItem('ua-history') || '[]');
+    history.unshift({ ...data, time: new Date().toLocaleString(currentLang === 'pt' ? 'pt-BR' : 'en-US') });
+    if (history.length > 50) history.pop();
+    localStorage.setItem('ua-history', JSON.stringify(history));
+  }
+
+  function loadHistory() {
+    const history = JSON.parse(localStorage.getItem('ua-history') || '[]');
+    const list = document.getElementById('history-list');
+    
+    if (history.length === 0) {
+      list.innerHTML = '<div class="empty-state"><i class="material-icons" style="font-size: 48px; display: block; margin-bottom: 10px;">history</i>' + t.noHistory + '</div>';
+      return;
+    }
+
+    list.innerHTML = history.map((item, idx) => {
+      const deviceInfo = getDeviceIcon(item.device);
+      return `
+        <div class="history-item">
+          <div class="history-item-info">
+            <div>
+              <i class="material-icons" style="font-size: 20px; vertical-align: middle; margin-right: 8px;">${deviceInfo.icon}</i>
+              <strong>${item.browser}</strong> (${item.version}) • ${item.os} • ${item.device}
+            </div>
+            <div class="history-item-time"><i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">schedule</i>${item.time}</div>
+            <div class="history-item-ua"><i class="material-icons" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">terminal</i>${item.ua}</div>
+          </div>
+          <button class="btn secondary" onclick="compareWithHistory(${idx})"><i class="material-icons" style="font-size: 16px; vertical-align: middle;">compare</i> Comparar</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function compareWithHistory(idx) {
+    const history = JSON.parse(localStorage.getItem('ua-history') || '[]');
+    document.getElementById('ua2-input').value = history[idx].ua;
+    document.querySelector('[onclick="switchTab(\'compare\')"]').click();
+  }
+
+  function clearHistory() {
+    if (confirm('Tem certeza?')) {
+      localStorage.removeItem('ua-history');
+      loadHistory();
+      showToast('Histórico limpo!');
+    }
+  }
+
+  function prepareCompare() {
+    document.getElementById('ua1-input').value = navigator.userAgent;
+  }
+
+  function compareUAs() {
+    const ua1 = document.getElementById('ua1-input').value;
+    const ua2 = document.getElementById('ua2-input').value;
+
+    if (!ua2.trim()) {
+      showToast('Cole um UA para comparar!');
+      return;
+    }
+
+    const data1 = detectUserAgent(ua1);
+    const data2 = detectUserAgent(ua2);
+
+    const browserIcon1 = getBrowserIcon(data1.browser);
+    const browserIcon2 = getBrowserIcon(data2.browser);
+    const osIcon1 = getOSIcon(data1.os);
+    const osIcon2 = getOSIcon(data2.os);
+    const deviceIcon1 = getDeviceIcon(data1.device).icon;
+    const deviceIcon2 = getDeviceIcon(data2.device).icon;
+    const archIcon1 = getArchIcon(data1.arch);
+    const archIcon2 = getArchIcon(data2.arch);
+
+    const html = `
+      <div class="card">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div>
+            <strong style="color: var(--accent); display: flex; align-items: center; gap: 8px;">
+              <i class="material-icons">compare_arrows</i>UA 1
+            </strong>
+            <div class="part" style="border-bottom: none; padding-bottom: 0;">
+              <strong style="display: flex; align-items: center; gap: 8px;">
+                <i class="material-icons" style="font-size: 16px;">${browserIcon1}</i>${t.browser}:
+              </strong> ${data1.browser}
+            </div>
+            <div class="part" style="border-bottom: none; padding-bottom: 0;">
+              <strong style="display: flex; align-items: center; gap: 8px;">
+                <i class="material-icons" style="font-size: 16px;">${osIcon1}</i>${t.os}:
+              </strong> ${data1.os}
+            </div>
+            <div class="part" style="border-bottom: none; padding-bottom: 0;">
+              <strong style="display: flex; align-items: center; gap: 8px;">
+                <i class="material-icons" style="font-size: 16px;">${deviceIcon1}</i>${t.device}:
+              </strong> ${data1.device}
+            </div>
+            <div class="part" style="border-bottom: none; padding-bottom: 0;">
+              <strong style="display: flex; align-items: center; gap: 8px;">
+                <i class="material-icons" style="font-size: 16px;">${archIcon1}</i>${t.arch}:
+              </strong> ${data1.arch}
+            </div>
+          </div>
+          <div>
+            <strong style="color: var(--accent); display: flex; align-items: center; gap: 8px;">
+              <i class="material-icons">compare_arrows</i>UA 2
+            </strong>
+            <div class="part" style="border-bottom: none; padding-bottom: 0;">
+              <strong style="display: flex; align-items: center; gap: 8px;">
+                <i class="material-icons" style="font-size: 16px;">${browserIcon2}</i>${t.browser}:
+              </strong> ${data2.browser}
+            </div>
+            <div class="part" style="border-bottom: none; padding-bottom: 0;">
+              <strong style="display: flex; align-items: center; gap: 8px;">
+                <i class="material-icons" style="font-size: 16px;">${osIcon2}</i>${t.os}:
+              </strong> ${data2.os}
+            </div>
+            <div class="part" style="border-bottom: none; padding-bottom: 0;">
+              <strong style="display: flex; align-items: center; gap: 8px;">
+                <i class="material-icons" style="font-size: 16px;">${deviceIcon2}</i>${t.device}:
+              </strong> ${data2.device}
+            </div>
+            <div class="part" style="border-bottom: none; padding-bottom: 0;">
+              <strong style="display: flex; align-items: center; gap: 8px;">
+                <i class="material-icons" style="font-size: 16px;">${archIcon2}</i>${t.arch}:
+              </strong> ${data2.arch}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('compare-result').innerHTML = html;
+  }
+
+  // Theme toggle
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const themeBtn = document.getElementById('themeToggle');
+  themeBtn.textContent = isDark ? '☀️' : '🌙';
+
+  themeBtn.addEventListener('click', () => {
+    document.documentElement.style.colorScheme = document.documentElement.style.colorScheme === 'dark' ? 'light' : 'dark';
+    themeBtn.textContent = document.documentElement.style.colorScheme === 'dark' ? '☀️' : '🌙';
+  });
+
+  // Carregar na inicialização
+  window.addEventListener('load', () => {
+    analyzeCurrentUA();
   });
 </script>
 
