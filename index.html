@@ -977,71 +977,85 @@
   }
 
   function detectUserAgent(ua) {
+    // Normaliza para que diferenças de maiúsculas/minúsculas (ex.: LINUX/Tizen)
+    // não façam o parser perder informações.
+    const normalizedUA = String(ua || "");
+    const lowerUA = normalizedUA.toLowerCase();
+
     // Navegador
     let browser = "Desconhecido";
-    if (ua.includes("Firefox")) browser = "Mozilla Firefox";
-    else if (ua.includes("OPR") || ua.includes("Opera")) browser = "Opera";
-    else if (ua.includes("Edg")) browser = "Microsoft Edge";
-    else if (ua.includes("Chrome")) browser = "Google Chrome";
-    else if (ua.includes("Safari")) browser = "Safari";
+    if (lowerUA.includes("firefox")) browser = "Mozilla Firefox";
+    else if (lowerUA.includes("opr") || lowerUA.includes("opera")) browser = "Opera";
+    else if (lowerUA.includes("edg")) browser = "Microsoft Edge";
+    else if (lowerUA.includes("chrome")) browser = "Google Chrome";
+    else if (lowerUA.includes("safari")) browser = "Safari";
 
     // Versão
     let version = "N/A";
     if (browser === "Mozilla Firefox") {
-      const m = ua.match(/Firefox\/([0-9.]+)/);
+      const m = normalizedUA.match(/Firefox\/([0-9.]+)/i);
       version = m ? m[1] : "N/A";
     } else if (browser === "Google Chrome") {
-      const m = ua.match(/Chrome\/([0-9.]+)/);
+      const m = normalizedUA.match(/Chrome\/([0-9.]+)/i);
       version = m ? m[1] : "N/A";
     } else if (browser === "Microsoft Edge") {
-      const m = ua.match(/Edg[e\/]+([0-9.]+)/);
+      const m = normalizedUA.match(/Edg[eA]?\/([0-9.]+)/i);
       version = m ? m[1] : "N/A";
     } else if (browser === "Safari") {
-      const m = ua.match(/Version\/([0-9.]+)/);
+      const m = normalizedUA.match(/Version\/([0-9.]+)/i);
       version = m ? m[1] : "N/A";
     } else if (browser === "Opera") {
-      const m = ua.match(/OPR\/([0-9.]+)/);
+      const m = normalizedUA.match(/OPR\/([0-9.]+)/i);
       version = m ? m[1] : "N/A";
     }
 
-    // SO
+    // Sistema operacional. Identificadores específicos vêm antes dos genéricos.
     let os = "Desconhecido";
-    if (ua.includes("Windows NT 10.0")) os = "Windows 10";
-    else if (ua.includes("Windows NT 11")) os = "Windows 11";
-    else if (ua.includes("Windows NT 6.3")) os = "Windows 8.1";
-    else if (ua.includes("Windows NT 6.1")) os = "Windows 7";
-    else if (ua.includes("Macintosh")) os = "macOS";
-    else if (ua.includes("Android")) os = "Android";
-    else if (ua.includes("iPhone")) os = "iOS (iPhone)";
-    else if (ua.includes("iPad")) os = "iOS (iPad)";
-    else if (ua.includes("Linux")) os = "Linux";
+    if (lowerUA.includes("windows nt 6.1")) os = "Windows 7";
+    else if (lowerUA.includes("windows nt 6.3")) os = "Windows 8.1";
+    else if (lowerUA.includes("windows nt 6.2")) os = "Windows 8";
+    else if (lowerUA.includes("windows nt 11")) os = "Windows 11";
+    else if (lowerUA.includes("windows nt 10.0")) os = "Windows 10";
+    else if (lowerUA.includes("tizen")) os = "Tizen";
+    else if (lowerUA.includes("web0s") || lowerUA.includes("webos")) os = "webOS";
+    else if (lowerUA.includes("iphone")) os = "iOS (iPhone)";
+    else if (lowerUA.includes("ipad")) os = "iOS (iPad)";
+    else if (lowerUA.includes("android")) os = "Android";
+    else if (lowerUA.includes("macintosh") || lowerUA.includes("mac os")) os = "macOS";
+    else if (lowerUA.includes("linux")) os = "Linux";
 
     // Engine
     let engine = "Desconhecida";
-    if (ua.includes("Gecko/") && ua.includes("Firefox")) engine = "Gecko";
-    else if (ua.includes("Chrome") || ua.includes("OPR") || ua.includes("Edg")) engine = "Blink";
-    else if (ua.includes("Safari") && !ua.includes("Chrome")) engine = "WebKit";
-    else if (ua.includes("Trident")) engine = "Trident";
+    if (lowerUA.includes("gecko/") && lowerUA.includes("firefox")) engine = "Gecko";
+    else if (lowerUA.includes("chrome") || lowerUA.includes("opr") || lowerUA.includes("edg")) engine = "Blink";
+    else if (lowerUA.includes("safari") && !lowerUA.includes("chrome")) engine = "WebKit";
+    else if (lowerUA.includes("trident")) engine = "Trident";
 
-    // Arquitetura
+    // Arquitetura: só declara quando o UA contém uma indicação explícita.
     let arch = "Desconhecida";
-    if (ua.includes("x86_64") || ua.includes("Win64") || ua.includes("WOW64") || ua.includes("amd64")) arch = "64-bit";
-    else if (ua.includes("x86") || ua.includes("i686")) arch = "32-bit";
+    if (lowerUA.includes("x86_64") || lowerUA.includes("win64") || lowerUA.includes("wow64") || lowerUA.includes("amd64")) arch = "64-bit";
+    else if (lowerUA.includes("i386") || lowerUA.includes("i486") || lowerUA.includes("i586") || lowerUA.includes("i686") || /\\bx86\\b/i.test(normalizedUA)) arch = "32-bit";
 
-    // Tipo de dispositivo
+    // Tipo de dispositivo. Tizen sozinho não garante que seja uma TV.
     let device = "PC";
-    if (ua.includes("Android Wear") || ua.includes("Wear OS")) {
+    const isSmartTV = lowerUA.includes("smart-tv") ||
+      lowerUA.includes("smarttv") ||
+      lowerUA.includes("android tv") ||
+      lowerUA.includes("googletv") ||
+      (lowerUA.includes("tizen") && /\\btv\\b/i.test(normalizedUA)) ||
+      (lowerUA.includes("webos") && (lowerUA.includes("tv") || lowerUA.includes("smart")));
+    if (lowerUA.includes("android wear") || lowerUA.includes("wear os")) {
       device = "SmartWatch";
-    } else if (ua.includes("Android TV") || ua.includes("GoogleTV") || ua.includes("Tizen")) {
+    } else if (isSmartTV) {
       device = "TV";
-    } else if (ua.includes("iPad") || (ua.includes("Android") && ua.includes("Tablet"))) {
+    } else if (lowerUA.includes("ipad") || (lowerUA.includes("android") && lowerUA.includes("tablet"))) {
       device = "Tablet";
-    } else if (ua.includes("Mobile") || ua.includes("Android") || ua.includes("iPhone") || ua.includes("Windows Phone")) {
+    } else if (lowerUA.includes("mobile") || lowerUA.includes("android") || lowerUA.includes("iphone") || lowerUA.includes("windows phone")) {
       device = "Celular";
     }
 
-    // ✨ Infos extras de hardware/sistema (só funcionam quando ua === navigator.userAgent)
-    const isLiveDevice = (ua === navigator.userAgent);
+    // Informações extras disponíveis apenas para o dispositivo real que abriu a página.
+    const isLiveDevice = (normalizedUA === navigator.userAgent);
     const screenRes = isLiveDevice ? `${window.screen.width} × ${window.screen.height}px` : "N/A";
     const colorDepth = isLiveDevice ? `${window.screen.colorDepth}-bit` : "N/A";
     const pixelRatio = isLiveDevice ? `${window.devicePixelRatio}×` : "N/A";
@@ -1050,18 +1064,18 @@
     const sysLang = isLiveDevice ? (navigator.language || "N/A") : "N/A";
     const touchSupport = isLiveDevice ? (navigator.maxTouchPoints > 0 ? "Sim" : "Não") : "N/A";
     const onlineStatus = isLiveDevice ? (navigator.onLine ? "Online" : "Offline") : "N/A";
-    const cookiesEnabled = isLiveDevice ? (navigator.cookieEnabled ? "Habilitados" : "Desabilitados") : "N/A";
+    const cookiesEnabled = isLiveDevice ? (navigator.cookieEnabled ? "Habilitados" : "Desabilitados") : "Desabilitados";
 
-    // Links de referência (Wikipedia como fallback confiável)
-    const wikiSlug = (str) => encodeURIComponent(str.replace(/ /g, '_'));
+    // Links de referência (Wikipedia como fallback).
+    const wikiSlug = (str) => encodeURIComponent(str.replace(/ /g, "_"));
     const links = {
       browser: `https://pt.wikipedia.org/wiki/${wikiSlug(browser)}`,
       os: `https://pt.wikipedia.org/wiki/${wikiSlug(os)}`,
-      engine: `https://pt.wikipedia.org/wiki/${wikiSlug(engine === 'Blink' ? 'Blink_(motor_de_navegador)' : engine === 'Gecko' ? 'Gecko_(motor_de_navegador)' : engine === 'WebKit' ? 'WebKit' : engine)}`
+      engine: `https://pt.wikipedia.org/wiki/${wikiSlug(engine === "Blink" ? "Blink_(motor_de_navegador)" : engine === "Gecko" ? "Gecko_(motor_de_navegador)" : engine === "WebKit" ? "WebKit" : engine)}`
     };
 
     return {
-      browser, version, os, engine, arch, device, ua,
+      browser, version, os, engine, arch, device, ua: normalizedUA,
       screenRes, colorDepth, pixelRatio, ramAprox, cpuCores,
       sysLang, touchSupport, onlineStatus, cookiesEnabled, links
     };
